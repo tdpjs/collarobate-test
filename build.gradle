@@ -1,5 +1,18 @@
 plugins {
     id 'java'
+    id 'checkstyle'
+}
+
+checkstyle {
+    toolVersion = '10.12.4'
+    configFile = file('config/checkstyle/checkstyle.xml')
+}
+
+tasks.withType(Checkstyle) {
+    reports {
+        xml.required = false
+        html.required = true
+    }
 }
 
 group = 'org.example'
