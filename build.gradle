@@ -44,9 +44,8 @@ tasks.withType(Checkstyle) {
         html.required = true
     }
 }
-tasks.register('createJre', Exec) {
+tasks.register('createJreWindows', Exec) {
     dependsOn 'classes'
-    // Adjust JAVA_HOME to point to your JDK installation path.
     def jdkHome = System.getenv('JAVA_HOME')
 
     if (jdkHome == null) {
@@ -55,8 +54,23 @@ tasks.register('createJre', Exec) {
 
     commandLine "$jdkHome/bin/jlink",
             '--module-path', "$jdkHome/jmods",
-            '--add-modules', 'java.base,java.logging',  // Add any required modules here
-            '--output', "${buildDir}/custom-jre",
+            '--add-modules', 'java.base,java.logging',
+            '--output', "${buildDir}/custom-jre/windows",
+            '--no-header-files', '--no-man-pages', '--compress=2'
+}
+
+tasks.register('createJreLinux', Exec) {
+    dependsOn 'classes'
+    def jdkHome = System.getenv('JAVA_HOME')
+
+    if (jdkHome == null) {
+        throw new GradleException("JAVA_HOME is not set. Please ensure JDK 17+ is installed.")
+    }
+
+    commandLine "$jdkHome/bin/jlink",
+            '--module-path', "$jdkHome/jmods",
+            '--add-modules', 'java.base,java.logging',
+            '--output', "${buildDir}/custom-jre/linux",
             '--no-header-files', '--no-man-pages', '--compress=2'
 }
 
@@ -80,9 +94,16 @@ test {
 distributions {
     main {
         contents {
-            from('README.md')// Optional: include additional files
-            into('lib/jre') {
-                from("${buildDir}/custom-jre")
+            from('README.md') // Optional: include additional files
+
+            // Include Windows JRE
+            into('lib/jre/windows') {
+                from "${buildDir}/custom-jre/windows"
+            }
+
+            // Include Linux JRE
+            into('lib/jre/linux') {
+                from "${buildDir}/custom-jre/linux"
             }
         }
     }
